@@ -19,7 +19,7 @@ Daemon::Control->new({
   path      => $abs_path,
 
   program      => '/usr/bin/starman',
-  program_args => [ '--workers', 10, '-l', ':3333',
+  program_args => [ '--workers', 10, '-l', ':6666',
                     "$abs_dir/app.psgi" ],
 
   user  => 'davorg',
