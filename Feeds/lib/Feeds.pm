@@ -4,6 +4,7 @@ use Dancer2;
 our $VERSION = '0.1';
 
 use LWP::Simple();
+use Path::Tiny;
 use Encode 'encode';
 
 my %feeds = (
@@ -40,7 +41,8 @@ get '/:feed' => sub {
   response_header 'Access-Control-Allow-Origin' => '*';
 
   if ($feed->{type} eq 'file') {
-    return encode 'UTF-8', `cat $feed->{path}`;
+    my $data = slurp_utf8($feed->{path});
+    return encode 'UTF-8', $data;
   }
 
   if ($feed->{type} eq 'uri') {
