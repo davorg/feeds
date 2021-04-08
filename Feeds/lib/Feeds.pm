@@ -37,6 +37,7 @@ get '/:feed' => sub {
   }
 
   content_type "application/$feed->{feed}+xml";
+  response_header 'Access-Control-Allow-Origin' => '*';
 
   if ($feed->{type} eq 'file') {
     return `cat $feed->{path}`;
