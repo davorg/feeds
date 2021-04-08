@@ -40,7 +40,7 @@ get '/:feed' => sub {
   response_header 'Access-Control-Allow-Origin' => '*';
 
   if ($feed->{type} eq 'file') {
-    return `cat $feed->{path}`;
+    return encode 'UTF-8', `cat $feed->{path}`;
   }
 
   if ($feed->{type} eq 'uri') {
