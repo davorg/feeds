@@ -1,0 +1,33 @@
+#!/usr/bin/env perl
+
+use warnings;
+use strict;
+use Daemon::Control;
+
+use Cwd qw(abs_path);
+use File::Basename;
+
+my $abs_path = abs_path($0);
+my $abs_dir  = dirname($0);
+
+Daemon::Control->new({
+  name      => 'Feeds',
+  lsb_start => '$syslog $remote_fs',
+  lsb_stop  => '$syslog',
+  lsb_sdesc => 'Feeds Proxy',
+  lsb_desc  => 'Feeds Proxy',
+  path      => $abs_path,
+
+  program      => '/usr/bin/starman',
+  program_args => [ '--workers', 10, '-l', ':3333',
+                    "$abs_dir/app.psgi" ],
+
+  user  => 'feeds',
+  group => 'psacln',
+
+  pid_file    => '/var/run/feeds.pid',
+  stderr_file => '/var/log/feeds/error.log',
+  stdout_file => '/var/log/feeds/output.log',
+
+  fork => 2,
+})->run;
