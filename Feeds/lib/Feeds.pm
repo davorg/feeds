@@ -1,0 +1,52 @@
+package Feeds;
+use Dancer2;
+
+our $VERSION = '0.1';
+
+use LWP::Simple();
+use Encode 'encode';
+
+my %feeds = (
+  music => {
+    feed => 'atom',
+    type => 'file',
+    path => '/var/www/vhosts/dave.org.uk/httpdocs/feed-data/lastfm.xml',
+  },
+  video => {
+    feed => 'atom',
+    type => 'uri',
+    uri  => 'https://trakt.tv/users/davorg/history.atom?slurm=e94f879ae8bd21e4c6aca5a25228eeda',
+  },
+);
+
+get '/' => sub {
+  template 'index' => {
+    title => 'Feeds',
+    feeds => \%feeds,
+  };
+};
+
+get '/:feed' => sub {
+  my $feed = route_parameters->get('feed');
+
+  if (exists $feeds{$feed}) {
+    $feed = $feeds{$feed};
+  } else {
+    status(404);
+    return "$feed is not a known feed";
+  }
+
+  content_type "application/$feed->{feed}+xml";
+
+  if ($feed->{type} eq 'file') {
+    return `cat $feed->{path}`;
+  }
+
+  if ($feed->{type} eq 'uri') {
+    return encode 'UTF-8', LWP::Simple::get $feed->{uri};
+  }
+
+  return $feed;
+};
+
+true;

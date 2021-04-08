@@ -1,0 +1,5 @@
+<ul>
+<% FOREACH feed IN feeds.keys.sort -%>
+  <li><a href="/<% feed %>"><% feed %></a></li>
+<% END -%>
+</ul>
