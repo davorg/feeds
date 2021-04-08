@@ -41,7 +41,7 @@ get '/:feed' => sub {
   response_header 'Access-Control-Allow-Origin' => '*';
 
   if ($feed->{type} eq 'file') {
-    my $data = slurp_utf8($feed->{path});
+    my $data = path($feed->{path})->slurp_utf8;
     return encode 'UTF-8', $data;
   }
 
