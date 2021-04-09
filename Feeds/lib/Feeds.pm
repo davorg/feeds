@@ -17,7 +17,7 @@ my %feeds = (
     feed => 'rss',
     type => 'uri',
     uri  => 'https://blog.dave.org.uk/feed/',
-  }
+  },
   music => {
     feed => 'atom',
     type => 'file',
