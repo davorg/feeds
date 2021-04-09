@@ -13,6 +13,11 @@ my %feeds = (
     type => 'uri',
     uri  => 'https://perlhacks.com/feed/',
   },
+  dev => {
+    feed => 'rss',
+    type => 'uri',
+    uri  => 'https://dev.to/feed/davorg',
+  },
   blog => {
     feed => 'rss',
     type => 'uri',
