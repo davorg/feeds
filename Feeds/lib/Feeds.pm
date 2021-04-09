@@ -3,7 +3,7 @@ use Dancer2;
 
 our $VERSION = '0.1';
 
-use LWP::Simple();
+use LWP::UserAgent;
 use Path::Tiny;
 use Encode 'encode';
 
@@ -61,10 +61,24 @@ get '/:feed' => sub {
   }
 
   if ($feed->{type} eq 'uri') {
-    return encode 'UTF-8', LWP::Simple::get $feed->{uri};
+    return encode 'UTF-8', get_uri($feed->{uri});
   }
 
   return $feed;
 };
 
 true;
+
+sub get_uri {
+  my ($uri) = shift;
+
+  my $ua = LWP::UserAgent->new( agent => "Dave's Feed Engine" );
+  my $resp = $ua->get($uri);
+
+  if ($resp->is_error) {
+    warn $resp->status_line;
+    return;
+  }
+
+  return $resp->content;
+}
