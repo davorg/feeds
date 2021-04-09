@@ -8,6 +8,16 @@ use Path::Tiny;
 use Encode 'encode';
 
 my %feeds = (
+  perl => {
+    feed => 'rss',
+    type => 'uri',
+    uri  => 'https://perlhacks.com/feed/',
+  },
+  blog => {
+    feed => 'rss',
+    type => 'uri',
+    uri  => 'https://blog.dave.org.uk/feed/',
+  }
   music => {
     feed => 'atom',
     type => 'file',
