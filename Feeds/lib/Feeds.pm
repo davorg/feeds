@@ -33,6 +33,11 @@ my %feeds = (
     type => 'uri',
     uri  => 'https://trakt.tv/users/davorg/history.atom?slurm=e94f879ae8bd21e4c6aca5a25228eeda',
   },
+  '127people' => {
+    feed => 'atom',
+    type => 'uri',
+    uri  => 'https://medium.com/feed/127-people',
+  },
 );
 
 get '/' => sub {
