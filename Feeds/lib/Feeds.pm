@@ -6,39 +6,14 @@ our $VERSION = '0.1';
 use LWP::UserAgent;
 use Path::Tiny;
 use Encode 'encode';
+use JSON;
 
-my %feeds = (
-  perl => {
-    feed => 'rss',
-    type => 'uri',
-    uri  => 'https://perlhacks.com/feed/',
-  },
-  dev => {
-    feed => 'rss',
-    type => 'uri',
-    uri  => 'https://dev.to/feed/davorg',
-  },
-  blog => {
-    feed => 'rss',
-    type => 'uri',
-    uri  => 'https://blog.dave.org.uk/feed/',
-  },
-  music => {
-    feed => 'atom',
-    type => 'file',
-    path => '/var/www/vhosts/dave.org.uk/httpdocs/feed-data/lastfm.xml',
-  },
-  video => {
-    feed => 'atom',
-    type => 'uri',
-    uri  => 'https://trakt.tv/users/davorg/history.atom?slurm=e94f879ae8bd21e4c6aca5a25228eeda',
-  },
-  '127people' => {
-    feed => 'atom',
-    type => 'uri',
-    uri  => 'https://medium.com/feed/127-people',
-  },
-);
+my $json_p = JSON->new;
+my $json = LWP::UserAgent->new->get('http:/localhost:5000/feeds.json')->content;
+
+warn $json;
+
+my %feeds = $json_p->decode($json);
 
 get '/' => sub {
   template 'index' => {
