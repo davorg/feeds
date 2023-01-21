@@ -6,27 +6,30 @@ our $VERSION = '0.1';
 use LWP::UserAgent;
 use Path::Tiny;
 use Encode 'encode';
-use JSON;
+use JSON ();
 
-my $json_p = JSON->new;
-my $json = LWP::UserAgent->new->get('http:/localhost:5000/feeds.json')->content;
+hook before => sub {
+  my $json_p = JSON->new;
+  warn request->base, "\n";
+  my $json = get_uri(request->base . 'feeds.json');
 
-warn $json;
+  warn "Feeds JSON: $json\n";
 
-my %feeds = $json_p->decode($json);
+  var feeds => $json_p->decode($json);
+};
 
 get '/' => sub {
   template 'index' => {
     title => 'Feeds',
-    feeds => \%feeds,
+    feeds => vars->{feeds},
   };
 };
 
 get '/:feed' => sub {
   my $feed = route_parameters->get('feed');
 
-  if (exists $feeds{$feed}) {
-    $feed = $feeds{$feed};
+  if (exists vars->{feeds}{$feed}) {
+    $feed = vars->{feeds}{$feed};
   } else {
     status(404);
     return "$feed is not a known feed";
@@ -55,8 +58,8 @@ sub get_uri {
   my $ua = LWP::UserAgent->new( agent => "Dave's Feed Engine" );
   my $resp = $ua->get($uri);
 
-  if ($resp->is_error) {
-    warn $resp->status_line;
+  if (! $resp->is_success) {
+    die $resp->status_line;
     return;
   }
 
