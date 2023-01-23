@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  unit_tests:
+    env:
+      PERL5LIB: Feeds/lib:$PERL5LIB
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ 'ubuntu-latest' ]
+        perl: [ 'latest' ]
+    name: Perl ${{ matrix.perl }} on ${{ matrix.os }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+      - name: Set up perl
+        uses: shogo82148/actions-setup-perl@v1
+        with:
+          perl-version: ${{ matrix.perl }}
+      - name: Perl version
+        run: perl -V
+      - name: Install modules
+        run: cpanm -n --installdeps .
+      - name: Install coverage modules
+        run: cpanm -m Devel::Cover Devel::Cover::Report::Coveralls
+      - name: Run standard tests
+        if: matrix.os != 'ubuntu-latest'
+        run: prove -ISuccession/lib -v Succession/t
+      - name: Run coverage tests
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HARNESS_PERL_SWITCHES: -MDevel::Cover
+        run: prove -IFeeds/lib -v Feeds/t && cover -report Coveralls -ignore t/*
+

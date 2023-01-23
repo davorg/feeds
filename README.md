@@ -1,3 +1,7 @@
+[![CI](https://github.com/davorg/feeds/actions/workflows/perltest.yml/badge.svg)](https://github.com/davorg/feeds/actions/workflows/perltest.yml)
+
+[![Coverage Status](https://coveralls.io/repos/github/davorg/feeds/badge.svg?branch=add-ci)](https://coveralls.io/github/davorg/feeds?branch=add-ci)
+
 # feeds
 Simple feeds proxy for circumventing CORS problems
 
