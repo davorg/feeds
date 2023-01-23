@@ -1,6 +1,8 @@
 package Feeds;
 use Dancer2;
 
+use feature 'say';
+
 our $VERSION = '0.1';
 
 use LWP::UserAgent;
@@ -8,28 +10,18 @@ use Path::Tiny;
 use Encode 'encode';
 use JSON ();
 
-hook before => sub {
-  my $json_p = JSON->new;
-  warn request->base, "\n";
-  my $json = get_uri(request->base . 'feeds.json');
-
-  warn "Feeds JSON: $json\n";
-
-  var feeds => $json_p->decode($json);
-};
-
 get '/' => sub {
   template 'index' => {
     title => 'Feeds',
-    feeds => vars->{feeds},
+    feeds => config->{feeds},
   };
 };
 
 get '/:feed' => sub {
   my $feed = route_parameters->get('feed');
 
-  if (exists vars->{feeds}{$feed}) {
-    $feed = vars->{feeds}{$feed};
+  if (exists config->{feeds}{$feed}) {
+    $feed = config->{feeds}{$feed};
   } else {
     status(404);
     return "$feed is not a known feed";
@@ -46,6 +38,8 @@ get '/:feed' => sub {
   if ($feed->{type} eq 'uri') {
     return encode 'UTF-8', get_uri($feed->{uri});
   }
+
+  warn "Unknown feed type: $feed->{type}";
 
   return $feed;
 };
