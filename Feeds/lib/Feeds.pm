@@ -23,7 +23,9 @@ my $feed_type = {
 
     # TODO: Is there any point in decoding the data in the sub
     # only to encode it again here?
-    my ($data, $content_type) = get_uri($feed->{uri});
+    my ($data, $charset) = get_uri($feed->{uri});
+    my $content_type = "application/$feed->{feed}+xml";
+    $content_type .= "; charset=$charset" if $charset;
     content_type $content_type;
 
     return encode 'UTF-8', $data;
@@ -74,7 +76,9 @@ sub get_uri {
   }
 
   my $content = $resp->decoded_content;
-  my $content_type = $resp->headers->header('Content-type');
+  my $charset = $resp->content_charset;
 
-  return ($content, $content_type);
+  return ($content, $charset);
 }
+
+1;
