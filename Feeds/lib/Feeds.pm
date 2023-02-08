@@ -27,7 +27,7 @@ get '/:feed' => sub {
     return "$feed is not a known feed";
   }
 
-  content_type "application/$feed->{feed}+xml";
+  content_type "application/$feed->{feed}+xml; charset=UTF-8";
   response_header 'Access-Control-Allow-Origin' => '*';
 
   if ($feed->{type} eq 'file') {
