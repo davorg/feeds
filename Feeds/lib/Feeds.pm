@@ -7,7 +7,7 @@ our $VERSION = '0.1';
 
 use LWP::UserAgent;
 use Path::Tiny;
-use Encode 'encode';
+use Encode qw[decode encode];
 use JSON ();
 
 get '/' => sub {
@@ -31,7 +31,7 @@ get '/:feed' => sub {
   response_header 'Access-Control-Allow-Origin' => '*';
 
   if ($feed->{type} eq 'file') {
-    my $data = path($feed->{path})->slurp_utf8;
+    my $data = decode path($feed->{path})->slurp_utf8;
     return encode 'UTF-8', $data;
   }
 
@@ -57,5 +57,5 @@ sub get_uri {
     return;
   }
 
-  return $resp->content;
+  return decode $resp->content;
 }
