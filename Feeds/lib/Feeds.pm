@@ -31,7 +31,7 @@ get '/:feed' => sub {
   response_header 'Access-Control-Allow-Origin' => '*';
 
   if ($feed->{type} eq 'file') {
-    my $data = decode path($feed->{path})->slurp_utf8;
+    my $data = decode 'UTF-8', path($feed->{path})->slurp_utf8;
     return encode 'UTF-8', $data;
   }
 
@@ -57,5 +57,5 @@ sub get_uri {
     return;
   }
 
-  return decode $resp->content;
+  return decode 'UTF-8', $resp->content;
 }
