@@ -10,6 +10,23 @@ use Path::Tiny;
 use Encode qw[decode encode];
 use JSON ();
 
+my $feed_type = {
+  file => sub {
+    my $feed = shift;
+
+    # TODO: This decode/encode seems pointless
+    my $data = decode 'UTF-8', path($feed->{path})->slurp_utf8;
+    return encode 'UTF-8', $data;
+  },
+  uri => sub {
+    my $feed = shift;
+
+    # TODO: Is there any point in decoding the data in the sub
+    # only to encode it again here?
+    return encode 'UTF-8', get_uri($feed->{uri});
+  },
+};
+
 get '/' => sub {
   template 'index' => {
     title => 'Feeds',
@@ -28,30 +45,18 @@ get '/:feed' => sub {
     return "$feed_name is not a known feed";
   }
 
+
   # TODO: Only set the content type once we know it's
   # a valid feed and (more importantly) what the charset is
   content_type "application/$feed->{feed}+xml; charset=UTF-8";
   response_header 'Access-Control-Allow-Origin' => '*';
 
-  # TODO: Dispatch table
-  if ($feed->{type} eq 'file') {
-    # TODO: This decode/encode seems pointless
-    my $data = decode 'UTF-8', path($feed->{path})->slurp_utf8;
-    return encode 'UTF-8', $data;
+  if (exists $feed_type->{$feed->{type}}) {
+    return $feed_type->{$feed->{type}}->($feed);
+  } else {
+    # TODO: Use HTTP::Exception?
+    die "Unknown feed type: $feed->{type}";
   }
-
-  if ($feed->{type} eq 'uri') {
-    # TODO: Is there any point in decoding the data in the sub
-    # only to encode it again here?
-    return encode 'UTF-8', get_uri($feed->{uri});
-  }
-
-  # TODO: Should this die, not warn?
-  warn "Unknown feed type: $feed->{type}";
-
-  # TODO: What should we really return here?
-  # TODO: Use HTTP::Exception?
-  return $feed;
 };
 
 true;
