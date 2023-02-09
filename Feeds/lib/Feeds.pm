@@ -1,6 +1,8 @@
 package Feeds;
 use Dancer2;
 
+use HTTP::Exception;
+
 use feature 'say';
 
 our $VERSION = '0.1';
@@ -21,8 +23,6 @@ my $feed_type = {
   uri => sub {
     my $feed = shift;
 
-    # TODO: Is there any point in decoding the data in the sub
-    # only to encode it again here?
     my ($data, $charset) = get_uri($feed->{uri});
     my $content_type = "application/$feed->{feed}+xml";
     $content_type .= "; charset=$charset" if $charset;
@@ -46,8 +46,8 @@ get '/:feed' => sub {
   if (exists config->{feeds}{$feed_name}) {
     $feed = config->{feeds}{$feed_name};
   } else {
-    status(404);
-    return "$feed_name is not a known feed";
+    HTTP::Exception(404, "$feed_name is not a known feed");
+    return;
   }
 
   response_header 'Access-Control-Allow-Origin' => '*';
@@ -55,8 +55,7 @@ get '/:feed' => sub {
   if (exists $feed_type->{$feed->{type}}) {
     return $feed_type->{$feed->{type}}->($feed);
   } else {
-    # TODO: Use HTTP::Exception?
-    die "Unknown feed type: $feed->{type}";
+    HTTP::Exception->throw(404, "Unknown feed type: $feed->{type}");
   }
 };
 
@@ -69,9 +68,8 @@ sub get_uri {
   my $ua = LWP::UserAgent->new( agent => "Dave's Feed Engine" );
   my $resp = $ua->get($uri);
 
-  # TODO: Throw an HTTP::Exception here?
   if (! $resp->is_success) {
-    die $resp->status_line;
+    HTTP::Exception->throw($resp->code, $resp->status_line);
     return;
   }
 

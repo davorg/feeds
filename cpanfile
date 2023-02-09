@@ -5,3 +5,4 @@ requires 'Encode';
 requires 'JSON';
 requires 'Starman';
 requires 'Plack';
+requires 'HTTP::Exception';
