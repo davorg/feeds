@@ -90,3 +90,8 @@ feeds:
     feed: rss
     type: uri
     uri: https://davorg.medium.com/feed
+  substack:
+    feed: rss
+    type: uri
+    uri:  https://davecross.substack.com/feed
+
