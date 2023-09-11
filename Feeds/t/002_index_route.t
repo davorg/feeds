@@ -29,7 +29,7 @@ ok( $res->is_success, "[GET /$feed_key] successful" )
 
 my $feed_type = Feeds->config->{feeds}{$feed_key}{feed};
 
-like( $res->header('Content-type'), qr[^application/$feed_type+xml],
+like( $res->header('Content-type'), qr[^application/$feed_type\+xml],
     'Correct content type');
 
 done_testing;
