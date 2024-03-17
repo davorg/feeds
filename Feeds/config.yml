@@ -94,4 +94,8 @@ feeds:
     feed: rss
     type: uri
     uri:  https://davecross.substack.com/feed
+  succession:
+    feed: rss
+    type: uri
+    uri: https://blog.lineofsuccession.co.uk/feed/
 
