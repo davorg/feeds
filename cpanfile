@@ -7,3 +7,4 @@ requires 'LWP::UserAgent';
 requires 'Path::Tiny';
 requires 'Plack';
 requires 'Starman';
+requires 'XML::Feed';
