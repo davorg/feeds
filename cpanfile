@@ -1,8 +1,8 @@
 requires 'Dancer2';
+requires 'Encode';
+requires 'HTTP::Exception';
+requires 'JSON';
 requires 'LWP::UserAgent';
 requires 'Path::Tiny';
-requires 'Encode';
-requires 'JSON';
-requires 'Starman';
 requires 'Plack';
-requires 'HTTP::Exception';
+requires 'Starman';
