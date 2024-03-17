@@ -1,5 +1,6 @@
 requires 'Dancer2';
 requires 'Encode';
+requires 'Feature::Compat::Class';
 requires 'HTTP::Exception';
 requires 'JSON';
 requires 'LWP::UserAgent';
