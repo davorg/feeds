@@ -12,6 +12,8 @@ use Path::Tiny;
 use Encode qw[decode encode];
 use JSON ();
 
+use Feeds::Feed;
+
 my $feed_type = {
   file => sub {
     my $feed = shift;
@@ -32,6 +34,8 @@ my $feed_type = {
   },
 };
 
+my $formats = { map { $_ => 1 } qw[yaml json] };
+
 get '/' => sub {
   template 'index' => {
     title => 'Feeds',
@@ -41,10 +45,10 @@ get '/' => sub {
 
 get '/:feed' => sub {
   my $feed_name = route_parameters->get('feed');
-  my $feed;
+  my $feed_config;
 
   if (exists config->{feeds}{$feed_name}) {
-    $feed = config->{feeds}{$feed_name};
+    $feed_config = config->{feeds}{$feed_name};
   } else {
     HTTP::Exception(404, "$feed_name is not a known feed");
     return;
@@ -52,31 +56,29 @@ get '/:feed' => sub {
 
   response_header 'Access-Control-Allow-Origin' => '*';
 
-  if (exists $feed_type->{$feed->{type}}) {
-    return $feed_type->{$feed->{type}}->($feed);
+  my $format = query_parameters->get('format') // '';
+
+  if ($format && ! exists $formats->{$format}) {
+    HTTP::Exception->throw(400, "Unknown format: $format");
+  }  
+
+  my $feed = Feeds::Feed->new(%$feed_config);
+
+  if ($format eq 'json') {
+    content_type 'application/json';
+use Data::Printer;
+p $feed->data;
+    return encode_json($feed->data);
+  } elsif ($format eq 'yaml') {
+    content_type 'application/yaml';
+    return to_yaml($feed->data);
   } else {
-    HTTP::Exception->throw(404, "Unknown feed type: $feed->{type}");
+    content_type "application/xml";
+    return $feed->text;
   }
 };
 
 true;
 
-sub get_uri {
-  my ($uri) = shift;
-
-  # TODO: Persist the UA under PSGI?
-  my $ua = LWP::UserAgent->new( agent => "Dave's Feed Engine" );
-  my $resp = $ua->get($uri);
-
-  if (! $resp->is_success) {
-    HTTP::Exception->throw($resp->code, $resp->status_line);
-    return;
-  }
-
-  my $content = $resp->decoded_content;
-  my $charset = $resp->content_charset;
-
-  return ($content, $charset);
-}
 
 1;
