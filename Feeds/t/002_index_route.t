@@ -25,7 +25,7 @@ diag "Testing feed - $feed_key";
 $res = $test->request( GET "/$feed_key" );
 
 ok( $res->is_success, "[GET /$feed_key] successful" )
-  or diag $res->message;;
+  or diag $res->message;
 
 my $feed_type = Feeds->config->{feeds}{$feed_key}{feed};
 
