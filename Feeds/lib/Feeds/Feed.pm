@@ -78,3 +78,5 @@ class Feeds::Feed {
     return $data;
   }
 }
+
+1;
