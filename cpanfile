@@ -1,4 +1,5 @@
 requires 'Dancer2';
+requires 'Data::Printer';
 requires 'Encode';
 requires 'Feature::Compat::Class';
 requires 'HTTP::Exception';
