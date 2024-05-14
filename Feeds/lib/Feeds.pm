@@ -11,6 +11,7 @@ use LWP::UserAgent;
 use Path::Tiny;
 use Encode qw[decode encode];
 use JSON ();
+use Sys::Hostname;
 
 my $feed_type = {
   file => sub {
@@ -36,6 +37,7 @@ get '/' => sub {
   template 'index' => {
     title => 'Feeds',
     feeds => config->{feeds},
+    host  => hostname,
   };
 };
 
