@@ -4,6 +4,8 @@ use warnings;
 use strict;
 use Daemon::Control;
 
+use ENV::Util -load_dotenv;
+
 use Cwd qw(abs_path);
 use File::Basename;
 
@@ -11,7 +13,7 @@ my $abs_path = abs_path($0);
 my $abs_dir  = dirname($0);
 
 Daemon::Control->new({
-  name      => 'Feeds',
+  name      => ucfirst ls $ENV{FEEDS_APP_NAME},
   lsb_start => '$syslog $remote_fs',
   lsb_stop  => '$syslog',
   lsb_sdesc => 'Feeds Proxy',
@@ -19,15 +21,15 @@ Daemon::Control->new({
   path      => $abs_path,
 
   program      => '/usr/bin/starman',
-  program_args => [ '--workers', 10, '-l', ':6666',
+  program_args => [ '--workers', 10, '-l', ":$ENV{FEEDS_APP_PORT}",
                     "$abs_dir/app.psgi" ],
 
-  user  => 'davorg',
-  group => 'psacln',
+  user  => $ENV{FEEDS_OWNER},
+  group => $ENV{FEEDS_GROUP},
 
-  pid_file    => '/var/run/feeds.pid',
-  stderr_file => '/var/log/feeds/error.log',
-  stdout_file => '/var/log/feeds/output.log',
+  pid_file    => "/var/run/$ENV{FEEDS_APP_NAME}.pid",
+  stderr_file => "$ENV{FEEDS_LOG_DIR}/error.log",
+  stdout_file => "$ENV{FEEDS_LOG_DIR}/output.log",
 
   fork => 2,
 })->run;
