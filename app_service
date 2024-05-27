@@ -22,7 +22,7 @@ Daemon::Control->new({
 
   program      => '/usr/bin/starman',
   program_args => [ '--workers', 10, '-l', ":$ENV{FEEDS_APP_PORT}",
-                    "$abs_dir/app.psgi" ],
+                    "$abs_dir/Feeds/bin/app.psgi" ],
 
   user  => $ENV{FEEDS_OWNER},
   group => $ENV{FEEDS_GROUP},
