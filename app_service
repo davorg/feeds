@@ -13,7 +13,7 @@ my $abs_path = abs_path($0);
 my $abs_dir  = dirname($0);
 
 Daemon::Control->new({
-  name      => ucfirst ls $ENV{FEEDS_APP_NAME},
+  name      => ucfirst lc $ENV{FEEDS_APP_NAME},
   lsb_start => '$syslog $remote_fs',
   lsb_stop  => '$syslog',
   lsb_sdesc => 'Feeds Proxy',
