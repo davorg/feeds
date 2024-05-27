@@ -1,9 +1,9 @@
-FROM perl:latest
-LABEL maintainer="dave@perlhacks.com"
+FROM perl:5.38.0
+LABEL maintainer="dave@perlhacks.org"
 
-EXPOSE 8080
-CMD plackup -s Starman Feeds/bin/app.psgi
+EXPOSE 5000
+CMD starman Feeds/bin/app.psgi
 
 COPY . /feeds
-RUN cd /feeds && cpanm --notest --installdeps .
+RUN cd /feeds && cpanm Starman LWP::Protocol::https && cpanm --installdeps .
 WORKDIR /feeds
