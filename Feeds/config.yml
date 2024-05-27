@@ -76,8 +76,8 @@ feeds:
     uri: https://blog.dave.org.uk/feed/
   music:
     feed: atom
-    type: file
-    path: /var/www/vhosts/dave.org.uk/httpdocs/feed-data/lastfm.xml
+    type: uri
+    url: https://dave.org.uk/feed-data/lastfm.xml
   video:
     feed: atom
     type: uri
