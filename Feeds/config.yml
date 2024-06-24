@@ -78,7 +78,11 @@ feeds:
     feed: atom
     type: uri
     uri: https://dave.org.uk/feed-data/lastfm.xml
-  video:
+  film:
+    feed: rss
+    type: uri
+    uri: https://letterboxd.com/realdavorg/rss/
+  tv:
     feed: atom
     type: uri
     uri: https://trakt.tv/users/davorg/history.atom?slurm=e94f879ae8bd21e4c6aca5a25228eeda
