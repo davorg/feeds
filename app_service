@@ -21,7 +21,7 @@ Daemon::Control->new({
   path      => $abs_path,
 
   program      => '/usr/bin/starman',
-  program_args => [ '--workers', 10, '-l', ":$ENV{FEEDS_APP_PORT}",
+  program_args => [ '--workers', ($ENV{FEEDS_WORKER_COUNT} // 10), '-l', ":$ENV{FEEDS_APP_PORT}",
                     "$abs_dir/Feeds/bin/app.psgi" ],
 
   user  => $ENV{FEEDS_OWNER},
