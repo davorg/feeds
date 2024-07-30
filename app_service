@@ -12,6 +12,18 @@ use File::Basename;
 my $abs_path = abs_path($0);
 my $abs_dir  = dirname($0);
 
+my @program_args;
+if ($ENV{FEEDS_WORKER_COUNT}) {
+  push @program_args, '--workers', $ENV{FEEDS_WORKER_COUNT};
+}
+if ($ENV{FEEDS_APP_PORT}) {
+  push @program_args, '-l', ":$ENV{FEEDS_APP_PORT}";
+}
+if ($ENV{FEEDS_APP_PRELOAD}) {
+  push @program_args, '--preload-app';
+}
+push @program_args, "$abs_dir/Feeds/bin/app.psgi";
+
 Daemon::Control->new({
   name      => ucfirst lc $ENV{FEEDS_APP_NAME},
   lsb_start => '$syslog $remote_fs',
@@ -21,8 +33,7 @@ Daemon::Control->new({
   path      => $abs_path,
 
   program      => '/usr/bin/starman',
-  program_args => [ '--workers', ($ENV{FEEDS_WORKER_COUNT} // 10), '-l', ":$ENV{FEEDS_APP_PORT}",
-                    "$abs_dir/Feeds/bin/app.psgi" ],
+  program_args => \@program_args,
 
   user  => $ENV{FEEDS_OWNER},
   group => $ENV{FEEDS_GROUP},
