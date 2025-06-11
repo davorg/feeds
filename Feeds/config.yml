@@ -85,7 +85,7 @@ feeds:
   tv:
     feed: atom
     type: uri
-    uri: https://davorg.dev/trakexport/feed.xml
+    uri: https://davorg.dev/trakt2feed/feed.xml
   127people:
     feed: atom
     type: uri
