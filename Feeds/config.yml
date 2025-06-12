@@ -85,7 +85,7 @@ feeds:
   tv:
     feed: atom
     type: uri
-    uri: https://davorg.dev/trakt2feed/feed.xml
+    uri: https://trakt.tv/users/davorg/history.atom?slurm=e94f879ae8bd21e4c6aca5a25228eeda
   127people:
     feed: atom
     type: uri
