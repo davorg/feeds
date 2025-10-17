@@ -58,7 +58,6 @@ jobs:
         run: |
           COMMIT=$(git rev-parse --short HEAD)
           gcloud builds submit \
-            --gcs-source-staging-dir="gs://dave-web-apps_cloudbuild" \
             --tag "europe-west2-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/containers/feeds:${COMMIT}"
         env:
           PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
