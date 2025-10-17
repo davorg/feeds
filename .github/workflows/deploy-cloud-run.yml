@@ -25,6 +25,21 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
+      - name: Debug auth & config
+        run: |
+          echo "Active account:"
+          gcloud auth list --filter=status:ACTIVE --format='value(account)'
+
+          ACCT=$(gcloud auth list --filter=status:ACTIVE --format='value(account)')
+          echo "Auth describe:"
+          gcloud auth describe "$ACCT" --format='yaml' | sed -e 's/AccessToken:.*/AccessToken: REDACTED/'
+
+          echo "Project + region:"
+          gcloud config list core project compute/region
+
+          echo "Project number:"
+          gcloud projects describe "$(gcloud config get-value project)" --format='value(projectNumber)'
+
       - name: Configure gcloud
         run: |
           gcloud config set project $PROJECT_ID
