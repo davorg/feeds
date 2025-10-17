@@ -25,27 +25,34 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Debug auth & config
-        run: |
-          echo "Active account:"
-          gcloud auth list --filter=status:ACTIVE --format='value(account)'
-
-          ACCT=$(gcloud auth list --filter=status:ACTIVE --format='value(account)')
-          echo "Auth describe:"
-          gcloud auth describe "$ACCT" --format='yaml' | sed -e 's/AccessToken:.*/AccessToken: REDACTED/'
-
-          echo "Project + region:"
-          gcloud config list core project compute/region
-
-          echo "Project number:"
-          gcloud projects describe "$(gcloud config get-value project)" --format='value(projectNumber)'
-
       - name: Configure gcloud
         run: |
           gcloud config set project $PROJECT_ID
           gcloud config set run/region europe-west2
         env:
           PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Debug auth & config
+        run: |
+          set -e
+          echo "Active account:"
+          gcloud auth list --filter=status:ACTIVE --format='value(account)'
+
+          ACCT="$(gcloud auth list --filter=status:ACTIVE --format='value(account)')"
+          echo "Auth describe:"
+          gcloud auth describe "$ACCT" --format='yaml' | sed -e 's/AccessToken:.*/AccessToken: REDACTED/'
+
+          echo "Project:"
+          gcloud config get-value project
+
+          echo "Run region (if set):"
+          gcloud config get-value run/region || true
+
+          echo "Compute region (fallback, if set):"
+          gcloud config get-value compute/region || true
+
+          echo "Project number:"
+          gcloud projects describe "$(gcloud config get-value project)" --format='value(projectNumber)'
 
       - name: Build & submit image
         run: |
