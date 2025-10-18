@@ -29,6 +29,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Vars
+        run: |
+          echo "PROJECT_ID: $PROJECT_ID"
+          echo "REGION: $REGION"
+          echo "IMAGE_REF: $IMAGE_REF"
+
       - id: auth
         name: Google Auth (WIF)
         uses: google-github-actions/auth@v2
