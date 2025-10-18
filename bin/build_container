@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ---- Required env ----
+: "${PROJECT_ID:?PROJECT_ID is required (e.g. dave-web-apps)}"
+: "${REGION:?REGION is required (e.g. europe-west2)}"
+
+# ---- Optional env with defaults ----
+AR_REPO="${AR_REPO:-containers}"
+IMAGE_NAME="${IMAGE_NAME:-$(basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")}"
+TAG="${TAG:-$(git rev-parse --short HEAD 2>/dev/null || date +%s)}"
+DOCKERFILE="${DOCKERFILE:-Dockerfile}"
+CONTEXT="${CONTEXT:-.}"
+EXTRA_BUILD_ARGS="${EXTRA_BUILD_ARGS:-}"
+
+IMAGE_REF="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${IMAGE_NAME}:${TAG}"
+
+# ---- Pre-flight checks ----
+need() { command -v "$1" >/dev/null 2>&1 || { echo "Error: '$1' not found in PATH" >&2; exit 1; }; }
+need gcloud
+need docker
+
+# Check docker daemon
+if ! docker info >/dev/null 2>&1; then
+  echo "Error: Docker daemon not reachable. Is Docker running?" >&2
+  exit 1
+fi
+
+# Verify DOCKERFILE exists
+if [[ ! -f "$DOCKERFILE" ]]; then
+  echo "Error: Dockerfile '$DOCKERFILE' not found." >&2
+  exit 1
+fi
+
+echo "==> Project:        $PROJECT_ID"
+echo "==> Region:         $REGION"
+echo "==> AR repo:        $AR_REPO"
+echo "==> Image name:     $IMAGE_NAME"
+echo "==> Tag:            $TAG"
+echo "==> Dockerfile:     $DOCKERFILE"
+echo "==> Context:        $CONTEXT"
+echo "==> Image ref:      $IMAGE_REF"
+echo
+
+# ---- Configure gcloud and docker auth ----
+echo "==> Setting gcloud project"
+gcloud config set project "$PROJECT_ID" >/dev/null
+
+echo "==> Ensuring Artifact Registry Docker auth"
+gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+
+# (Optional) ensure repo exists; ignore if it already exists
+echo "==> Ensuring Artifact Registry repo '${AR_REPO}' exists (idempotent)"
+gcloud artifacts repositories create "${AR_REPO}" \
+  --repository-format=docker \
+  --location="${REGION}" \
+  --description="Container images" \
+  >/dev/null 2>&1 || true
+
+# ---- Build & push ----
+echo "==> Building image"
+docker build \
+  -f "$DOCKERFILE" \
+  -t "$IMAGE_REF" \
+  $EXTRA_BUILD_ARGS \
+  "$CONTEXT"
+
+echo "==> Pushing image"
+docker push "$IMAGE_REF"
+
+# ---- Outputs ----
+echo "$IMAGE_REF" | tee ./image_ref.txt
+
+# If running in GitHub Actions, also set as an output
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  {
+    echo "image_ref=${IMAGE_REF}"
+  } >> "$GITHUB_OUTPUT"
+fi
+
+echo "==> Done."
+

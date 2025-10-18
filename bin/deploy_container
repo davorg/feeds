@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ---- Required basics ----
+: "${PROJECT_ID:?PROJECT_ID is required (e.g. dave-web-apps)}"
+: "${REGION:?REGION is required (e.g. europe-west2)}"
+
+# ---- Image to deploy ----
+if [[ -z "${IMAGE_REF:-}" ]]; then
+  if [[ -f "./image_ref.txt" ]]; then
+    IMAGE_REF="$(cat ./image_ref.txt)"
+  else
+    echo "Error: IMAGE_REF not set and ./image_ref.txt not found." >&2
+    exit 1
+  fi
+fi
+
+# ---- Defaults ----
+ALLOW_UNAUTH="${ALLOW_UNAUTH:-true}"
+MEMORY="${MEMORY:-256Mi}"
+CPU="${CPU:-1}"
+CONCURRENCY="${CONCURRENCY:-80}"
+MIN_INSTANCES="${MIN_INSTANCES:-0}"
+MAX_INSTANCES="${MAX_INSTANCES:-}"           # optional
+ENV_VARS="${ENV_VARS:-}"                      # optional, KEY=VALUE,KEY2=VALUE2
+RUNTIME_SERVICE_ACCOUNT="${RUNTIME_SERVICE_ACCOUNT:-}"  # optional
+VPC_CONNECTOR="${VPC_CONNECTOR:-}"            # optional
+VPC_EGRESS="${VPC_EGRESS:-}"                  # optional
+
+# Derive SERVICE_NAME if not provided (use last path segment before the tag)
+if [[ -z "${SERVICE_NAME:-}" ]]; then
+  # IMAGE_REF like: region-docker.pkg.dev/project/repo/name:tag
+  SERVICE_NAME="$(basename "$(echo "$IMAGE_REF" | cut -d: -f1)")"
+fi
+
+# ---- Helpers ----
+need() { command -v "$1" >/dev/null 2>&1 || { echo "Error: '$1' not found in PATH" >&2; exit 1; }; }
+need gcloud
+
+echo "==> Project:        $PROJECT_ID"
+echo "==> Region:         $REGION"
+echo "==> Service:        $SERVICE_NAME"
+echo "==> Image:          $IMAGE_REF"
+echo "==> Allow unauth:   $ALLOW_UNAUTH"
+echo "==> Memory / CPU:   $MEMORY / $CPU"
+echo "==> Concurrency:    $CONCURRENCY"
+echo "==> Min instances:  $MIN_INSTANCES"
+[[ -n "$MAX_INSTANCES" ]] && echo "==> Max instances:  $MAX_INSTANCES"
+[[ -n "$RUNTIME_SERVICE_ACCOUNT" ]] && echo "==> Runtime SA:     $RUNTIME_SERVICE_ACCOUNT"
+[[ -n "$ENV_VARS" ]] && echo "==> Env vars:       $ENV_VARS"
+[[ -n "$VPC_CONNECTOR" ]] && echo "==> VPC connector:  $VPC_CONNECTOR"
+[[ -n "$VPC_EGRESS" ]] && echo "==> VPC egress:     $VPC_EGRESS"
+echo
+
+# ---- Configure gcloud ----
+gcloud config set project "$PROJECT_ID" >/dev/null
+gcloud config set run/region "$REGION" >/dev/null
+
+# Sanity print who we are (useful in CI)
+echo "==> Active gcloud account:"
+gcloud auth list --filter=status:ACTIVE --format='value(account)'
+
+# ---- Build deploy command ----
+args=(
+  run deploy "$SERVICE_NAME"
+  --image "$IMAGE_REF"
+  --region "$REGION"
+  --platform managed
+  --memory "$MEMORY"
+  --cpu "$CPU"
+  --concurrency "$CONCURRENCY"
+  --min-instances "$MIN_INSTANCES"
+)
+
+# booleans / optional flags
+if [[ "${ALLOW_UNAUTH}" == "true" ]]; then
+  args+=( --allow-unauthenticated )
+else
+  args+=( --no-allow-unauthenticated )
+fi
+
+[[ -n "$MAX_INSTANCES" ]] && args+=( --max-instances "$MAX_INSTANCES" )
+[[ -n "$RUNTIME_SERVICE_ACCOUNT" ]] && args+=( --service-account "$RUNTIME_SERVICE_ACCOUNT" )
+[[ -n "$ENV_VARS" ]] && args+=( --set-env-vars "$ENV_VARS" )
+[[ -n "$VPC_CONNECTOR" ]] && args+=( --vpc-connector "$VPC_CONNECTOR" )
+[[ -n "$VPC_EGRESS" ]] && args+=( --vpc-egress "$VPC_EGRESS" )
+
+# ---- Deploy ----
+echo "==> Deploying to Cloud Run…"
+gcloud "${args[@]}"
+
+# ---- Get URL & outputs ----
+URL="$(gcloud run services describe "$SERVICE_NAME" --region "$REGION" --format='value(status.url)')"
+echo "==> Service URL: $URL"
+echo "$URL" > ./service_url.txt
+
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+  {
+    echo "service_url=${URL}"
+  } >> "$GITHUB_OUTPUT"
+fi
+
+echo "==> Done."
+
