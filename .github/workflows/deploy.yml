@@ -23,7 +23,6 @@ jobs:
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       REGION: europe-west2
-      IMAGE_REF: ${{ inputs.image_ref }}
 
     steps:
       - name: Checkout
@@ -51,6 +50,7 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
           CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ steps.auth.outputs.credentials_file_path }}
         run: |
+          IMAGE_REF="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${IMAGE_NAME}@${{ inputs.digest }}"
           echo "$IMAGE_REF" > image_ref.txt
           bin/deploy_container
           echo "Deployed to: $(cat service_url.txt)"

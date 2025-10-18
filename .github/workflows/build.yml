@@ -40,18 +40,14 @@ jobs:
           CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ steps.auth.outputs.credentials_file_path }}
         run: |
           bin/build_container
-
-      - id: out
-        name: Export image_ref
-        run: |
-          echo "image_ref=$(cat image_ref.txt)" >> "$GITHUB_OUTPUT"
-
-      - name: Debug build output
-        run: echo "build.outputs.image_ref=${{ steps.out.outputs.image_ref }}"
+          DIGEST=$(gcloud artifacts docker images describe \
+            "${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${IMAGE_NAME}:${TAG}" \
+            --format='value(image_summary.digest)')
+          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: build
     uses: davorg/feeds/.github/workflows/deploy.yml@main
     with:
-      image_ref: ${{ needs.build.outputs.image_ref }}
+      digest: ${{ needs.build.outputs.digest }}
 
