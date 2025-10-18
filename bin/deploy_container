@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ---- Required basics ----
 : "${PROJECT_ID:?PROJECT_ID is required (e.g. dave-web-apps)}"
-: "${REGION:?REGION is required (e.g. europe-west2)}"
+: "${REGION:?REGION is required (e.g. europe-west1)}"
 
 # ---- Image to deploy ----
 if [[ -z "${IMAGE_REF:-}" ]]; then

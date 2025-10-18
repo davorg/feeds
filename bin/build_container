@@ -3,7 +3,7 @@ set -euo pipefail
 
 # ---- Required env ----
 : "${PROJECT_ID:?PROJECT_ID is required (e.g. dave-web-apps)}"
-: "${REGION:?REGION is required (e.g. europe-west2)}"
+: "${REGION:?REGION is required (e.g. europe-west1)}"
 
 # ---- Optional env with defaults ----
 AR_REPO="${AR_REPO:-containers}"

@@ -14,7 +14,7 @@ jobs:
 
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      REGION: europe-west2
+      REGION: europe-west1
       IMAGE_NAME: feeds         # change if you ever rename the image
       AR_REPO: containers
 

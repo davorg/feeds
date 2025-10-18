@@ -22,7 +22,7 @@ jobs:
 
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      REGION: europe-west2
+      REGION: europe-west1
       IMAGE_NAME: feeds       # keep in sync with build
       AR_REPO: containers
 
