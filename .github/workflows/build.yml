@@ -46,6 +46,9 @@ jobs:
         run: |
           echo "image_ref=$(cat image_ref.txt)" >> "$GITHUB_OUTPUT"
 
+      - name: Debug build output
+        run: echo "build.outputs.image_ref=${{ steps.out.outputs.image_ref }}"
+
   deploy:
     needs: build
     uses: ./.github/workflows/deploy.yml
