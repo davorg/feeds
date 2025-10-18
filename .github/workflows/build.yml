@@ -1,0 +1,51 @@
+name: Build container
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      REGION: europe-west2
+      # Optional knobs for build script:
+      # AR_REPO: containers
+      # IMAGE_NAME: feeds
+      # TAG: ${{ github.sha }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: auth
+        name: Google Auth (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_ID_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build & push image (bin/build_container)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ steps.auth.outputs.credentials_file_path }}
+        run: |
+          bin/build_container
+          echo "IMAGE_REF=$(cat image_ref.txt)" >> "$GITHUB_ENV"
+
+      - name: Call Deploy workflow
+        uses: ./.github/workflows/deploy.yaml
+        with:
+          image_ref: ${{ env.IMAGE_REF }}
+        secrets: inherit
+
