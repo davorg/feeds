@@ -15,9 +15,11 @@ jobs:
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       REGION: europe-west2
+      IMAGE_NAME: feeds         # change if you ever rename the image
+      AR_REPO: containers
 
     outputs:
-      image_ref: ${{ steps.out.outputs.image_ref }}
+      digest: ${{ steps.getdigest.outputs.digest }}
 
     steps:
       - name: Checkout
@@ -34,20 +36,44 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Build & push image (bin/build_container)
+      - name: Configure gcloud
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
           CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ steps.auth.outputs.credentials_file_path }}
         run: |
+          gcloud config set project "${PROJECT_ID}"
+          gcloud config set run/region "${REGION}"
+
+      - name: Build & push (bin/build_container)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ steps.auth.outputs.credentials_file_path }}
+          PROJECT_ID: ${{ env.PROJECT_ID }}
+          REGION: ${{ env.REGION }}
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          AR_REPO: ${{ env.AR_REPO }}
+          TAG: ${{ github.sha }}    # deterministic tag
+        run: |
+          chmod +x bin/build_container
           bin/build_container
-          DIGEST=$(gcloud artifacts docker images describe \
-            "${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${IMAGE_NAME}:${TAG}" \
-            --format='value(image_summary.digest)')
-          echo "digest=${DIGEST}" >> "$GITHUB_OUTPUT"
+          echo "Built image: $(cat image_ref.txt)"
+
+      - id: getdigest
+        name: Get image digest (immutable)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ steps.auth.outputs.credentials_file_path }}
+        run: |
+          IMAGE_REF="$(cat image_ref.txt)"
+          DIGEST="$(gcloud artifacts docker images describe "$IMAGE_REF" \
+            --format='value(image_summary.digest)')"
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+          echo "Resolved digest: $DIGEST"
 
   deploy:
     needs: build
-    uses: davorg/feeds/.github/workflows/deploy.yml@main
+    uses: ./.github/workflows/deploy.yml
     with:
       digest: ${{ needs.build.outputs.digest }}
+    secrets: inherit
 

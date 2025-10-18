@@ -8,8 +8,8 @@ on:
         type: string
   workflow_dispatch:
     inputs:
-      image_ref:
-        description: 'Full image ref (e.g. europe-west2-docker.pkg.dev/PROJECT/containers/feeds:abc123)'
+      digest:
+        description: 'sha256:… digest to deploy (from build job)'
         required: true
         type: string
 
@@ -23,16 +23,12 @@ jobs:
     env:
       PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       REGION: europe-west2
+      IMAGE_NAME: feeds       # keep in sync with build
+      AR_REPO: containers
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Vars
-        run: |
-          echo "PROJECT_ID: $PROJECT_ID"
-          echo "REGION: $REGION"
-          echo "IMAGE_REF: $IMAGE_REF"
 
       - id: auth
         name: Google Auth (WIF)
@@ -45,13 +41,28 @@ jobs:
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Deploy (bin/deploy_container)
+      - name: Configure gcloud
         env:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
           CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ steps.auth.outputs.credentials_file_path }}
         run: |
+          gcloud config set project "${PROJECT_ID}"
+          gcloud config set run/region "${REGION}"
+
+      - name: Deploy (bin/deploy_container)
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.auth.outputs.credentials_file_path }}
+          CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${{ steps.auth.outputs.credentials_file_path }}
+          PROJECT_ID: ${{ env.PROJECT_ID }}
+          REGION: ${{ env.REGION }}
+          SERVICE_NAME: ${{ env.IMAGE_NAME }}
+        run: |
           IMAGE_REF="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${IMAGE_NAME}@${{ inputs.digest }}"
+          echo "Deploying image: $IMAGE_REF"
           echo "$IMAGE_REF" > image_ref.txt
+
+          chmod +x bin/deploy_container
           bin/deploy_container
+
           echo "Deployed to: $(cat service_url.txt)"
 
