@@ -3,7 +3,7 @@ name: Deploy to Cloud Run
 on:
   workflow_call:
     inputs:
-      image_ref:
+      digest:
         required: true
         type: string
   workflow_dispatch:
