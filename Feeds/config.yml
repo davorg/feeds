@@ -105,7 +105,7 @@ feeds:
   substack:
     feed: rss
     type: uri
-    uri:  https://davecross.substack.com/feed
+    uri: https://davecross.substack.com/feed
     description: Substack newsletter
   succession:
     feed: rss
