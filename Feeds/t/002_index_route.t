@@ -32,4 +32,23 @@ my $feed_type = Feeds->config->{feeds}{$feed_key}{feed};
 like( $res->header('Content-type'), qr[^application/$feed_type\+xml],
     'Correct content type');
 
+# Test that all feeds have descriptions
+foreach my $feed_name (keys %{Feeds->config->{feeds}}) {
+  ok( exists Feeds->config->{feeds}{$feed_name}{description},
+      "Feed '$feed_name' has a description field" );
+  ok( defined Feeds->config->{feeds}{$feed_name}{description},
+      "Feed '$feed_name' description is defined" );
+  ok( length(Feeds->config->{feeds}{$feed_name}{description}) > 0,
+      "Feed '$feed_name' description is not empty" );
+}
+
+# Test that the index page contains descriptions
+$res = $test->request( GET '/' );
+my $content = $res->decoded_content;
+foreach my $feed_name (keys %{Feeds->config->{feeds}}) {
+  my $desc = Feeds->config->{feeds}{$feed_name}{description};
+  like( $content, qr/\Q$desc\E/,
+      "Index page contains description for '$feed_name'" );
+}
+
 done_testing;

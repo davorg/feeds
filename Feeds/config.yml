@@ -66,40 +66,50 @@ feeds:
     feed: rss
     type: uri
     uri: https://perlhacks.com/feed/
+    description: Perl articles and tutorials
   dev:
     feed: rss
     type: uri
     uri: https://dev.to/feed/davorg
+    description: Dev.to posts
   blog:
     feed: rss
     type: uri
     uri: https://blog.dave.org.uk/feed/
+    description: Personal blog posts
   music:
     feed: atom
     type: uri
     uri: https://lfm.xiffy.nl/davorg
+    description: Last.fm music listening history
   film:
     feed: rss
     type: uri
     uri: https://letterboxd.com/realdavorg/rss/
+    description: Letterboxd film diary
   tv:
     feed: atom
     type: uri
     uri: https://trakt.tv/users/davorg/history.atom?slurm=e94f879ae8bd21e4c6aca5a25228eeda
+    description: Trakt.tv TV watching history
   127people:
     feed: atom
     type: uri
     uri: https://medium.com/feed/127-people
+    description: 127 People Medium publication
   medium:
     feed: rss
     type: uri
     uri: https://davorg.medium.com/feed
+    description: Medium posts
   substack:
     feed: rss
     type: uri
-    uri:  https://davecross.substack.com/feed
+    uri: https://davecross.substack.com/feed
+    description: Substack newsletter
   succession:
     feed: rss
     type: uri
     uri: https://blog.lineofsuccession.co.uk/feed/
+    description: Line of Succession blog
 

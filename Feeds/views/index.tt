@@ -1,5 +1,5 @@
 <ul>
 <% FOREACH feed IN feeds.keys.sort -%>
-  <li><a href="/<% feed %>"><% feed %></a></li>
+  <li><a href="/<% feed %>"><% feed %></a> - <% feeds.$feed.description %></li>
 <% END -%>
 </ul>
