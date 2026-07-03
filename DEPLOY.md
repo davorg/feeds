@@ -8,9 +8,10 @@ This app is a stateless Dancer2 service deployed to **Google Cloud Run**. We use
 
   * `bin/build_container` — builds and pushes a Docker image to **Artifact Registry**
   * `bin/deploy_container` — deploys that image to **Cloud Run**
-* **Two GitHub Actions workflows**:
+* **Three GitHub Actions workflows**:
 
-  * `.github/workflows/build.yml` — builds & pushes, then calls…
+  * `.github/workflows/perltest.yml` — runs the Perl test suite
+  * `.github/workflows/build.yml` — runs after successful CI on `main`, builds & pushes, then calls…
   * `.github/workflows/deploy.yml` — reusable workflow that deploys **by image digest** (immutable)
 
 We **do not** use Cloud Build. Images are built on the GitHub runner and pushed directly.
@@ -75,14 +76,22 @@ Both scripts check required env vars and will print the full image reference and
 
 ## CI/CD Workflows
 
-### 1) Build workflow (`.github/workflows/build.yml`)
+### 1) CI workflow (`.github/workflows/perltest.yml`)
 
+* Runs on push, pull request to `main`, and manual dispatch
+* Installs CPAN dependencies and runs the Perl test suite
+* Reports coverage from the Ubuntu job
+
+### 2) Build workflow (`.github/workflows/build.yml`)
+
+* Runs after the CI workflow completes successfully on `main`, or by manual dispatch
 * Auth via WIF
-* Set `TAG=${{ github.sha }}` (deterministic)
+* Checks out the tested commit from `workflow_run.head_sha`
+* Sets `TAG` to that tested commit SHA (deterministic)
 * Run `bin/build_container` (build & push)
 * Resolve **digest** for the pushed image and pass it to the deploy workflow
 
-### 2) Deploy workflow (`.github/workflows/deploy.yml`)
+### 3) Deploy workflow (`.github/workflows/deploy.yml`)
 
 * Reconstruct an **immutable** image reference from:
 

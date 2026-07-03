@@ -1,12 +1,17 @@
 name: Build container
 
 on:
-  push:
+  workflow_run:
+    workflows: [ CI ]
+    types: [ completed ]
     branches: [ main ]
   workflow_dispatch:
 
 jobs:
   build:
+    if: >-
+      ${{ github.event_name == 'workflow_dispatch' ||
+          github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: read
       id-token: write
@@ -17,6 +22,7 @@ jobs:
       REGION: europe-west1
       IMAGE_NAME: feeds         # change if you ever rename the image
       AR_REPO: containers
+      COMMIT_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 
     outputs:
       digest: ${{ steps.getdigest.outputs.digest }}
@@ -24,6 +30,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ env.COMMIT_SHA }}
 
       - id: auth
         name: Google Auth (WIF)
@@ -52,7 +60,7 @@ jobs:
           REGION: ${{ env.REGION }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
           AR_REPO: ${{ env.AR_REPO }}
-          TAG: ${{ github.sha }}    # deterministic tag
+          TAG: ${{ env.COMMIT_SHA }}    # deterministic tag for the tested commit
         run: |
           chmod +x bin/build_container
           bin/build_container
@@ -76,4 +84,3 @@ jobs:
     with:
       digest: ${{ needs.build.outputs.digest }}
     secrets: inherit
-
