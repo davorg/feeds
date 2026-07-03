@@ -3,6 +3,7 @@ requires 'LWP::UserAgent';
 requires 'Path::Tiny';
 requires 'Encode';
 requires 'JSON';
+requires 'URI';
 requires 'Starman';
 requires 'Plack';
 requires 'HTTP::Exception';
