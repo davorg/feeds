@@ -9,6 +9,7 @@ use HTTP::Response;
 
 my $requested_uri;
 my $fetches = 0;
+my $latin1_body = pack 'C*', 0x63, 0x61, 0x66, 0xe9;
 
 {
   no warnings 'redefine';
@@ -17,9 +18,10 @@ my $fetches = 0;
     ++$fetches;
 
     my $res = HTTP::Response->new(202, 'Accepted');
-    $res->header('Content-Type' => 'application/json; charset=UTF-8');
+    $res->header('Content-Type' => 'text/plain; charset=ISO-8859-1');
     $res->header('Cache-Control' => 'max-age=60');
-    $res->content('{"ok":true}');
+    $res->header('Content-Language' => 'fr');
+    $res->content($latin1_body);
 
     return $res;
   };
@@ -32,11 +34,12 @@ my $fetches = 0;
   );
 
   is $res->code, 202, 'returns upstream status';
-  is $res->decoded_content, '{"ok":true}', 'returns upstream body';
-  like $res->header('Content-Type'), qr{\Aapplication/json; charset=UTF-8},
-    'returns upstream content type';
+  is $res->content, $latin1_body, 'returns upstream body bytes without re-encoding';
+  is $res->header('Content-Type'), 'text/plain; charset=ISO-8859-1',
+    'returns upstream content type with charset';
   is $res->header('Access-Control-Allow-Origin'), '*', 'adds CORS header';
   is $res->header('Cache-Control'), 'max-age=60', 'copies safe cache header';
+  is $res->header('Content-Language'), 'fr', 'copies representation header';
   is "$requested_uri", 'https://example.com/data.json?x=1', 'decodes target URL';
   is $fetches, 1, 'fetches upstream once';
 

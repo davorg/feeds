@@ -59,15 +59,27 @@ get qr{^/url/(.+)$} => sub {
 
   my $resp = get_proxy_uri($uri);
 
-  status $resp->code;
-  content_type $resp->header('Content-Type') || 'application/octet-stream';
+  response->status($resp->code);
+  response_header 'Content-Type' =>
+    $resp->header('Content-Type') || 'application/octet-stream';
 
-  for my $header (qw(Cache-Control ETag Expires Last-Modified)) {
+  for my $header (qw(
+    Cache-Control
+    Content-Encoding
+    Content-Language
+    ETag
+    Expires
+    Last-Modified
+    Location
+    Vary
+  )) {
     my $value = $resp->header($header);
     response_header $header => $value if defined $value;
   }
 
-  return $resp->content;
+  response->is_encoded(1);
+  response->content($resp->content);
+  return response;
 };
 
 get '/:feed' => sub {
